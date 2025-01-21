@@ -17,7 +17,7 @@ This script creates a local WordPress site in the directory specified by the ${D
 It prompts for a `SLUG`. If no `SLUG` is provided, it defaults to `wordpress`.
 It also prompts for a `SITE NAME`. If no `SITE NAME` is provided, it defaults to the `SLUG` with the first letter capitalized.
 
-- Creates the necessary directory structure (e.g., ${DEV_PATH}/${SLUG}/wordpress)
+- Creates the necessary directory structure at '`DEV_PATH`/`SLUG`/wordpress'
 - Installs `wp-cli` if necessary
 - Downloads the latest version of WordPress
 - Creates the wp-config.php file
