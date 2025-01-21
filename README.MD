@@ -1,6 +1,6 @@
 # WP-Build
 
-This repository contains shell scripts designed to automate the creation and destruction of local WordPress sites using Ubuntu.
+This repository contains shell scripts designed to automate the creation and destruction of local WordPress sites running on Ubuntu.
 
 ## Prerequisites
 
@@ -8,8 +8,6 @@ This repository contains shell scripts designed to automate the creation and des
 - PHP 8.2+ with the following modules active: curl, dom, gd, json, mbstring, mysqli, openssl, xml, zip
 - Apache with mod_rewrite enabled
 - MariaDB 10.6+ with root access
-
----
 
 ## Scripts
 
