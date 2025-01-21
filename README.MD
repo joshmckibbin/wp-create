@@ -15,7 +15,7 @@ This repository contains shell scripts designed to automate the creation and des
 This script creates a local WordPress site in the directory specified by the ${DEV_PATH} environment variable.
 
 It prompts for a `SLUG`. If no `SLUG` is provided, it defaults to `wordpress`.
-It also prompts for a `SITE NAME`. If no `SITE NAME` is provided, it defaults to the `SLUG` with the first letter capitalized.
+It also prompts for a `TITLE` for the site. If no `TITLE` is provided, it defaults to the `SLUG` with the first letter capitalized.
 
 - Creates the necessary directory structure at '`DEV_PATH`/`SLUG`/wordpress'
 - Installs `wp-cli` if necessary
