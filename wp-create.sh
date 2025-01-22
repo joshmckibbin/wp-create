@@ -59,12 +59,12 @@ slugify() {
 }
 
 # Prompt for the site slug
-DEFAULT_SLUG=$(slugify "${TITLE}")
-read -p "Enter the site slug (Default: ${DEFAULT_SLUG}}): " SLUG
-if [ -z "${SLUG}" ]; then
-	SLUG=${DEFAULT_SLUG}
-else
+TITLE_SLUG=$(slugify "${TITLE}")
+read -p "Enter the site slug (Default: ${TITLE_SLUG}}): " SLUG
+if [ -n ${SLUG} ]; then
 	SLUG=$(slugify "${SLUG}")
+else
+	SLUG=${TITLE_SLUG}
 fi
 
 # Set the output colors
