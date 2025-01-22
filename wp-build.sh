@@ -196,7 +196,7 @@ else
 	echo -e "\nNo existing database dump found. Skipping import..."
 fi
 
-# INstall and activate the Simple SMTP Mailer plugin if SMTP_USER and SMTP_PASS are set
+# Install and activate the Simple SMTP Mailer plugin if SMTP_USER and SMTP_PASS are set
 if [ -n "${SMTP_USER}" ] && [ -n "${SMTP_PASS}" ]; then
 	echo -e "SMTP environment variables found..."
 	wp plugin install simple-smtp-mailer --activate
@@ -213,16 +213,16 @@ if [ ! -f ${APACHE_CONF} ]; then
 
 	DocumentRoot ${INSTALL_DIR}
 	<Directory ${DEV_PATH}/${SLUG}>
-        Options FollowSymLinks
-        AllowOverride None
-	    Require all granted
-    </Directory>
+		Options FollowSymLinks
+		AllowOverride None
+		Require all granted
+	</Directory>
 
 	<Directory ${INSTALL_DIR}>
 		Options Indexes FollowSymLinks MultiViews
-        AllowOverride All
-        Order allow,deny
-        Allow from all
+		AllowOverride All
+		Order allow,deny
+		Allow from all
 	</Directory>
 	ErrorLog ${DEV_PATH}/${SLUG}/apache-error.log
 	CustomLog \${APACHE_LOG_DIR}/${SLUG}-access.log combined
@@ -256,16 +256,15 @@ WINDOWS_HOSTS="C:\\Windows\\System32\\drivers\\\etc\hosts"
 echo "On Windows, the hosts file is located at ${WINDOWS_HOSTS}"
 echo -e "\nYou will need to edit it with an editor that has elevated privileges."
 echo -e "You can do this by running the following command in PowerShell as an administrator:\n"
-echo -e " ${BLUE}notepad ${WINDOWS_HOSTS}${NC}"
+echo -e " ${BLUE}notepad ${WINDOWS_HOSTS}${NC}\n"
 
-echo -e "\nOn Ubuntu, the hosts file is located at /etc/hosts"
+echo -e "On Ubuntu, the hosts file is located at /etc/hosts"
 echo -e "You can edit it with the following command:\n"
 echo -e " ${BLUE}sudo nano /etc/hosts${NC}\n"
 
 echo -e "If you ran this script in WSL, you will need to edit the hosts file in Windows."
-echo -e "If you are using a different operating system, please consult the documentation for editing the hosts file."
 
 # Display the site URL and login credentials
 echo -e "Site created at ${GREEN}http://${LOCAL_DOMAIN}${NC}"
 echo -e "*** If nothing was imported, you will see a blank page. ***\n"
-echo -e "\n\nWordPress Login: ${GREEN}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})\n"
+echo -e "WordPress Login: ${GREEN}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})"
