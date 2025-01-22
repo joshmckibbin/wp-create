@@ -2,7 +2,7 @@
 
 # BUILD SCRIPT FOR LOCAL WORDPRESS DEVELOPMENT
 # Author: Josh Mckibbin
-# Version: 1.0.0
+# Version: 1.0.1
 # Date: 2025-01-21
 #
 # This script creates a new WordPress site in the ${DEV_PATH} directory:
@@ -70,8 +70,11 @@ fi
 INSTALL_DIR="${DEV_PATH}/${SLUG}/wordpress"
 
 # Attempt to create the installation directory and if it fails, exit
-echo -e "\nCreating the installation directory..."
-mkdir -vp ${INSTALL_DIR} || echo "The installation directory could not be created. Exiting..." && exit 1
+echo -e "Creating the installation directory..."
+if ! mkdir -p ${INSTALL_DIR} 2>/dev/null; then
+	echo "The installation directory could not be created. Exiting..."
+	exit 1
+fi
 
 # Move to the web directory
 cd ${INSTALL_DIR}
@@ -83,7 +86,7 @@ if [ -f wp-config.php ]; then
 else
 
 # Download the latest version of WordPress
-echo -e "\nDownloading WordPress..."
+echo -e "Downloading WordPress..."
 wp core download --skip-content
 
 # Create the wp-config.php file
@@ -105,7 +108,7 @@ SSMTP
 	)
 fi
 
-echo -e "\nCreating wp-config.php..."
+echo -e "Creating wp-config.php..."
 wp config create --dbname=${SLUG} \
 	--dbuser=${DB_USER} \
 	--dbpass=${DB_PASS} \
@@ -162,7 +165,7 @@ DEV_DB="${DB_DUMP_DIR}/${SLUG}-dev.sql"
 OG_DB="${DB_DUMP_DIR}/${SLUG}.sql"
 PROD_DB="${DB_DUMP_DIR}/${SLUG}-prod.sql"
 
-echo -e "\nChecking for existing database dump..."
+echo -e "Checking for existing database dump..."
 if [ -f ${DEV_DB} ] || [ -f ${OG_DB} ] || [ -f ${PROD_DB} ]; then
 	if [ -f ${DEV_DB} ]; then
 		echo -e "Importing the Development database..."
@@ -193,7 +196,7 @@ if [ -f ${DEV_DB} ] || [ -f ${OG_DB} ] || [ -f ${PROD_DB} ]; then
 	# Flush the cache
 	wp cache flush
 else
-	echo -e "\nNo existing database dump found. Skipping import..."
+	echo -e "No existing database dump found. Skipping import...\n"
 fi
 
 # Install and activate the Simple SMTP Mailer plugin if SMTP_USER and SMTP_PASS are set
@@ -205,7 +208,7 @@ fi
 # Create the Apache configuration file if it doesn't exist
 APACHE_CONF="${AVAILABLE_SITES_DIR}/${LOCAL_DOMAIN}.conf"
 if [ ! -f ${APACHE_CONF} ]; then
-	echo -e "\nCreating the Apache configuration file..."
+	echo -e "Creating the Apache configuration file..."
 	cat <<APACHE > ${APACHE_CONF}
 <VirtualHost *:80>
 	ServerName ${LOCAL_DOMAIN}
@@ -238,7 +241,7 @@ if [ ! -f ${APACHE_SL} ]; then
 fi
 
 # Restart Apache
-echo -e "Restarting Apache...\n"
+echo -e "Restarting Apache..."
 sudo systemctl restart apache2
 
 # Set the output colors
