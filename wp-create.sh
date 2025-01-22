@@ -2,8 +2,8 @@
 
 # BUILD SCRIPT FOR LOCAL WORDPRESS DEVELOPMENT
 # Author: Josh Mckibbin
-# Version: 1.0.1
-# Date: 2025-01-21
+# Version: 1.0.0
+# Date: 2025-01-22
 #
 # This script creates a new WordPress site in the ${DEV_DIR} directory:
 # 	- Creates the necessary directory structure (e.g., ${DEV_DIR}/${SLUG}/wordpress)
@@ -37,27 +37,34 @@
 
 source .env
 
-
-
-# Prompt for the site title
-read -p "Enter the site title (Default: WordPress): " TITLE
-if [ -z "${TITLE}" ]; then
-	TITLE="WordPress"
+# Prompt for the site title if $1 is not provided
+if [ -z "$1" ]; then
+	read -p "Enter the site title (Default: WordPress): " TITLE
+	if [ -z "${TITLE}" ]; then
+		TITLE="WordPress"
+	fi
+else
+	TITLE=$1
 fi
 
-# Create a default slug from the title
-DEFAULT_SLUG=$(echo "${TITLE}" | \
-	iconv -t ascii//TRANSLIT | \
-	sed -r s/[~\^]+//g | \
-	sed -r s/[^a-zA-Z0-9]+/-/g | \
-	sed -r s/^-+\|-+$//g | \
-	tr A-Z a-z)
-DEFAULT_SLUG=${DEFAULT_SLUG:0:8}
+# Create a slugify function
+slugify() {
+	SLUG=$(echo "${1}" | \
+		iconv -t ascii//TRANSLIT | \
+		sed -r s/[~\^]+//g | \
+		sed -r s/[^a-zA-Z0-9]+/-/g | \
+		sed -r s/^-+\|-+$//g | \
+		tr A-Z a-z)
+	echo ${SLUG:0:15}
+}
 
 # Prompt for the site slug
-read -p "Enter the site slug (Default: ${DEFAULT_SLUG}): " SLUG
+DEFAULT_SLUG=$(slugify "${TITLE}")
+read -p "Enter the site slug (Default: ${DEFAULT_SLUG}}): " SLUG
 if [ -z "${SLUG}" ]; then
 	SLUG=${DEFAULT_SLUG}
+else
+	SLUG=$(slugify "${SLUG}")
 fi
 
 # Set the local site domain
@@ -78,11 +85,14 @@ fi
 
 INSTALL_DIR="${DEV_DIR}/${SLUG}/wordpress"
 
-# Attempt to create the installation directory and if it fails, exit
-echo -e "Creating the installation directory..."
-if ! mkdir -p ${INSTALL_DIR} 2>/dev/null; then
-	echo "The installation directory could not be created. Exiting..."
-	exit 1
+# Attempt to create the installation directory if it doesn't exist and if it fails, exit
+if [ ! -d ${INSTALL_DIR} ]; then
+	echo -e "Creating the installation directory..."
+	mkdir -p ${INSTALL_DIR}
+	if [ $? -ne 0 ]; then
+		echo "The installation directory could not be created. Exiting..."
+		exit 1
+	fi
 fi
 
 # Move to the web directory
@@ -98,8 +108,11 @@ else
 echo -e "Downloading WordPress..."
 wp core download --skip-content
 
+# Generate DB_NAME
+DB_NAME=$(echo ${SLUG} | sed 's/-/_/g')
+
 # Create the wp-config.php file
-DB_PREFIX="wp_${SLUG}_"
+DB_PREFIX="wp_${DB_NAME}_"
 SSMTP_MAILER=""
 if [ -n "${SMTP_USER}" ] && [ -n "${SMTP_PASS}" ]; then
 	SSMTP_MAILER=$(cat <<SSMTP
@@ -118,7 +131,7 @@ SSMTP
 fi
 
 echo -e "Creating wp-config.php..."
-wp config create --dbname=${SLUG} \
+wp config create --dbname=${DB_NAME} \
 	--dbuser=${DB_USER} \
 	--dbpass=${DB_PASS} \
 	--dbprefix=${DB_PREFIX} \
@@ -158,10 +171,11 @@ PHP
 fi
 
 # Create the database and grant permissions to the user
-wp db create --dbuser=root --dbpass=${DB_ROOT_PASS}
+#wp db create --dbuser=root --dbpass=${DB_ROOT_PASS}
 mariadb -uroot -p${DB_ROOT_PASS} -e \
-	"CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost'; \
-	GRANT ALL PRIVILEGES ON ${SLUG}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+	"CREATE DATABASE IF NOT EXISTS ${DB_NAME}; \
+	CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost'; \
+	GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
 
 # Install WordPress
 wp core install --title="${TITLE}" \
@@ -214,6 +228,16 @@ fi
 if [ -n "${SMTP_USER}" ] && [ -n "${SMTP_PASS}" ]; then
 	echo -e "SMTP environment variables found..."
 	wp plugin install simple-smtp-mailer --activate
+fi
+
+# Create the available sites directory if it doesn't exist, exit if it fails
+if [ ! -d ${AVAILABLE_SITES_DIR} ]; then
+	echo -e "Creating the available sites directory..."
+	mkdir -p ${AVAILABLE_SITES_DIR}
+	if [ $? -ne 0 ]; then
+		echo "The available sites directory could not be created. Exiting..."
+		exit 1
+	fi
 fi
 
 # Create the Apache configuration file if it doesn't exist
@@ -278,8 +302,6 @@ echo -e " ${BLUE}sudo nano /etc/hosts${NC}\n"
 
 echo -e "If you ran this script in WSL, you will need to edit the hosts file in Windows."
 
-# Display the site URL and login credentials
-echo -e "Site created at ${GREEN}http://${LOCAL_DOMAIN}${NC}"
-echo -e "*** If nothing was imported, you will see a blank page. ***\n"
+# Display the Login URL and credentials
 echo -e "WordPress Login: ${GREEN}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})"
 exit 0
