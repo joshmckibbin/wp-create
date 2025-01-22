@@ -1,4 +1,4 @@
-# WP-Build
+# WP-Create
 
 This repository contains shell scripts designed to automate the creation and destruction of local WordPress sites running on Ubuntu.
 
@@ -11,7 +11,7 @@ This repository contains shell scripts designed to automate the creation and des
 
 ## Scripts
 
-### `wp-build.sh`
+### `wp-create.sh`
 This script creates a local WordPress site in the directory specified by the ${DEV_PATH} environment variable.
 
 It prompts for a `SLUG`. If no `SLUG` is provided, it defaults to `wordpress`.
@@ -38,31 +38,37 @@ It also asks you if you want to delete the database.
 
 ## Usage
 
-1. Clone or download the repository
+1. Create and/or navigate to the directory where you want to create sites (`DEV_PATH`)
 
 ```sh
-git clone git@github.com:joshmckibbin/wp-build.git
+mkdir -p /path/to/dev/directory && cd /path/to/dev/directory
 ```
 
-2. Make sure you have execute permissions for the scripts
+2. Clone (or download and extract) the repository into the directory
 
 ```sh
-chmod +x wp-build.sh wp-destroy.sh
+git clone git@github.com:joshmckibbin/wp-create.git .
 ```
 
-3. Copy the `.env-sample` file to `.env` and replace the environment values with your own.
+3. Make sure you have execute permissions for the scripts
+
+```sh
+chmod +x wp-create.sh wp-destroy.sh
+```
+
+4. Copy the `.env-sample` file to `.env` and replace the environment values with your own.
 
 ```sh
 cp .env-sample .env
 ```
 
-4. Run one of the shell scripts
+5. Run one of the shell scripts
 
 ```sh
 ./wp-build.sh
 ```
 
-5. Profit?
+6. Profit?
 
 ## License
 
