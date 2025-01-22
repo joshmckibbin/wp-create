@@ -5,8 +5,8 @@
 # Version: 1.0.1
 # Date: 2025-01-21
 #
-# This script creates a new WordPress site in the ${DEV_PATH} directory:
-# 	- Creates the necessary directory structure (e.g., ${DEV_PATH}/${SLUG}/wordpress)
+# This script creates a new WordPress site in the ${DEV_DIR} directory:
+# 	- Creates the necessary directory structure (e.g., ${DEV_DIR}/${SLUG}/wordpress)
 #	- Downloads the latest version of WordPress
 # 	- Creates the wp-config.php file
 # 	- Creates the database as '${SLUG}'
@@ -21,7 +21,7 @@
 #		- MariaDB 10.6+ with root access
 #		- wp-cli: The script will attempt to install it if it's not found
 #	- .env file in the same directory as this script with the necessary variables:
-#		- DEV_PATH (e.g., /path/to/your/dev/directory)
+#		- DEV_DIR (e.g., /path/to/your/dev/directory)
 #		- AVAILABLE_SITES_DIR (e.g., /path/to/your/apache/sites-available)
 #		- ADMIN
 #		- ADMIN_EMAIL
@@ -37,18 +37,27 @@
 
 source .env
 
-# Prompt for the site slug
-read -p "Enter the site slug (Default: wordpress): " SLUG
-if [ -z "${SLUG}" ]; then
-	SLUG="wordpress"
-else
-	SLUG=$(echo ${SLUG} | tr '[:upper:]' '[:lower:]')
-fi
+
 
 # Prompt for the site title
-read -p "Enter the site title (Default: ${SLUG^}): " TITLE
+read -p "Enter the site title (Default: WordPress): " TITLE
 if [ -z "${TITLE}" ]; then
-	TITLE=${SLUG^}
+	TITLE="WordPress"
+fi
+
+# Create a default slug from the title
+DEFAULT_SLUG=$(echo "${TITLE}" | \
+	iconv -t ascii//TRANSLIT | \
+	sed -r s/[~\^]+//g | \
+	sed -r s/[^a-zA-Z0-9]+/-/g | \
+	sed -r s/^-+\|-+$//g | \
+	tr A-Z a-z)
+DEFAULT_SLUG=${DEFAULT_SLUG:0:8}
+
+# Prompt for the site slug
+read -p "Enter the site slug (Default: ${DEFAULT_SLUG}): " SLUG
+if [ -z "${SLUG}" ]; then
+	SLUG=${DEFAULT_SLUG}
 fi
 
 # Set the local site domain
@@ -67,7 +76,7 @@ if ! command -v wp &> /dev/null; then
 	fi
 fi
 
-INSTALL_DIR="${DEV_PATH}/${SLUG}/wordpress"
+INSTALL_DIR="${DEV_DIR}/${SLUG}/wordpress"
 
 # Attempt to create the installation directory and if it fails, exit
 echo -e "Creating the installation directory..."
@@ -150,7 +159,9 @@ fi
 
 # Create the database and grant permissions to the user
 wp db create --dbuser=root --dbpass=${DB_ROOT_PASS}
-mariadb -uroot -p${DB_ROOT_PASS} -e "GRANT ALL PRIVILEGES ON ${SLUG}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+mariadb -uroot -p${DB_ROOT_PASS} -e \
+	"CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost'; \
+	GRANT ALL PRIVILEGES ON ${SLUG}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
 
 # Install WordPress
 wp core install --title="${TITLE}" \
@@ -215,7 +226,7 @@ if [ ! -f ${APACHE_CONF} ]; then
 	ServerAdmin ${ADMIN_EMAIL}
 
 	DocumentRoot ${INSTALL_DIR}
-	<Directory ${DEV_PATH}/${SLUG}>
+	<Directory ${DEV_DIR}/${SLUG}>
 		Options FollowSymLinks
 		AllowOverride None
 		Require all granted
@@ -227,7 +238,7 @@ if [ ! -f ${APACHE_CONF} ]; then
 		Order allow,deny
 		Allow from all
 	</Directory>
-	ErrorLog ${DEV_PATH}/${SLUG}/apache-error.log
+	ErrorLog ${DEV_DIR}/${SLUG}/apache-error.log
 	CustomLog \${APACHE_LOG_DIR}/${SLUG}-access.log combined
 </VirtualHost>
 APACHE
@@ -271,3 +282,4 @@ echo -e "If you ran this script in WSL, you will need to edit the hosts file in 
 echo -e "Site created at ${GREEN}http://${LOCAL_DOMAIN}${NC}"
 echo -e "*** If nothing was imported, you will see a blank page. ***\n"
 echo -e "WordPress Login: ${GREEN}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})"
+exit 0

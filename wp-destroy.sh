@@ -15,7 +15,7 @@ else
 fi
 
 # Set the installation directory and local domain
-INSTALL_DIR="${DEV_PATH}/${SLUG}"
+INSTALL_DIR="${DEV_DIR}/${SLUG}"
 LOCAL_DOMAIN="${SLUG}.local"
 
 # Check if the WordPress installation exists
