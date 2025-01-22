@@ -67,6 +67,11 @@ else
 	SLUG=$(slugify "${SLUG}")
 fi
 
+# Set the output colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 # Set the local site domain
 LOCAL_DOMAIN="${SLUG}.local"
 
@@ -87,12 +92,12 @@ INSTALL_DIR="${DEV_DIR}/${SLUG}/wordpress"
 
 # Attempt to create the installation directory if it doesn't exist and if it fails, exit
 if [ ! -d ${INSTALL_DIR} ]; then
-	echo -e "Creating the installation directory..."
 	mkdir -p ${INSTALL_DIR}
 	if [ $? -ne 0 ]; then
 		echo "The installation directory could not be created. Exiting..."
 		exit 1
 	fi
+	echo -e "${GREEN}Success:${NC} Installation directory created at ${INSTALL_DIR}"
 fi
 
 # Move to the web directory
@@ -130,7 +135,6 @@ SSMTP
 	)
 fi
 
-echo -e "Creating wp-config.php..."
 wp config create --dbname=${DB_NAME} \
 	--dbuser=${DB_USER} \
 	--dbpass=${DB_PASS} \
@@ -172,10 +176,16 @@ fi
 
 # Create the database and grant permissions to the user
 #wp db create --dbuser=root --dbpass=${DB_ROOT_PASS}
-mariadb -uroot -p${DB_ROOT_PASS} -e \
+if mariadb -uroot -p${DB_ROOT_PASS} -e \
 	"CREATE DATABASE IF NOT EXISTS ${DB_NAME}; \
 	CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost'; \
-	GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+	GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';" \
+	&> /dev/null; then
+	echo -e "${GREEN}Success:${NC} Database created and user permissions granted"
+else
+	echo -e "Database creation and user permissions failed. Exiting..."
+	exit 1
+fi
 
 # Install WordPress
 wp core install --title="${TITLE}" \
@@ -190,8 +200,8 @@ DEV_DB="${DB_DUMP_DIR}/${SLUG}-dev.sql"
 OG_DB="${DB_DUMP_DIR}/${SLUG}.sql"
 PROD_DB="${DB_DUMP_DIR}/${SLUG}-prod.sql"
 
-echo -e "Checking for existing database dump..."
 if [ -f ${DEV_DB} ] || [ -f ${OG_DB} ] || [ -f ${PROD_DB} ]; then
+	echo -e "Existing database dump found..."
 	if [ -f ${DEV_DB} ]; then
 		echo -e "Importing the Development database..."
 		wp db import ${DEV_DB}
@@ -220,8 +230,6 @@ if [ -f ${DEV_DB} ] || [ -f ${OG_DB} ] || [ -f ${PROD_DB} ]; then
 
 	# Flush the cache
 	wp cache flush
-else
-	echo -e "No existing database dump found. Skipping import...\n"
 fi
 
 # Install and activate the Simple SMTP Mailer plugin if SMTP_USER and SMTP_PASS are set
@@ -243,7 +251,6 @@ fi
 # Create the Apache configuration file if it doesn't exist
 APACHE_CONF="${AVAILABLE_SITES_DIR}/${LOCAL_DOMAIN}.conf"
 if [ ! -f ${APACHE_CONF} ]; then
-	echo -e "Creating the Apache configuration file..."
 	cat <<APACHE > ${APACHE_CONF}
 <VirtualHost *:80>
 	ServerName ${LOCAL_DOMAIN}
@@ -266,42 +273,43 @@ if [ ! -f ${APACHE_CONF} ]; then
 	CustomLog \${APACHE_LOG_DIR}/${SLUG}-access.log combined
 </VirtualHost>
 APACHE
+	echo -e "${GREEN}Success:${NC} Apache configuration file created at ${APACHE_CONF}"
 fi
 
 # Create a symbolic link to the Apache configuration file
 APACHE_SL="${ENABLED_SITES_DIR}/${LOCAL_DOMAIN}.conf"
 if [ ! -f ${APACHE_SL} ]; then
-	echo -e "Creating a symbolic link to the Apache configuration file..."
 	sudo ln -s ${APACHE_CONF} ${APACHE_SL}
+	echo -e "${GREEN}Success:${NC} Enabled the site via symbolic link at ${APACHE_SL}"
 fi
 
 # Restart Apache
-echo -e "Restarting Apache..."
-sudo systemctl restart apache2
-
-# Set the output colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+if sudo systemctl restart apache2 &> /dev/null; then
+	echo -e "${GREEN}Success:${NC} Apache restarted\n"
+else
+	echo -e "Apache could not be restarted."
+	echo -e "Check the Apache error log at ${DEV_DIR}/${SLUG}/apache-error.log. Exiting..."
+	exit 1
+fi
 
 # Display message about making sure the site domain is in the hosts file
-echo -e "Add the following to the bottom of your hosts file:\n${BLUE}"
+echo -e "Add the following to the bottom of your hosts file:\n${GREEN}"
 echo "127.0.0.1 ${LOCAL_DOMAIN}"
 echo "::1 ${LOCAL_DOMAIN}"
 echo -e "${NC}"
 
 WINDOWS_HOSTS="C:\\Windows\\System32\\drivers\\\etc\hosts"
-echo "On Windows, the hosts file is located at ${WINDOWS_HOSTS}"
-echo -e "\nYou will need to edit it with an editor that has elevated privileges."
-echo -e "You can do this by running the following command in PowerShell as an administrator:\n"
-echo -e " ${BLUE}notepad ${WINDOWS_HOSTS}${NC}\n"
+echo -e "On Windows, the hosts file is located at ${BLUE}${WINDOWS_HOSTS}${NC}"
+echo -e "You will need to edit it with an editor that has elevated privileges."
+echo -e "Open PowerShell as an Administrator and run the following command:\n"
+echo -e "${GREEN}notepad ${WINDOWS_HOSTS}${NC}\n"
 
-echo -e "On Ubuntu, the hosts file is located at /etc/hosts"
+echo -e "On Ubuntu, the hosts file is located at ${BLUE}/etc/hosts${NC}"
 echo -e "You can edit it with the following command:\n"
-echo -e " ${BLUE}sudo nano /etc/hosts${NC}\n"
+echo -e "${GREEN}sudo nano /etc/hosts${NC}\n"
 
 echo -e "If you ran this script in WSL, you will need to edit the hosts file in Windows."
 
 # Display the Login URL and credentials
-echo -e "WordPress Login: ${GREEN}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})"
+echo -e "WordPress Login: ${BLUE}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})\n"
 exit 0
