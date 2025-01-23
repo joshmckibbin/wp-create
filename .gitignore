@@ -1,2 +1,5 @@
 */
 .env
+*.sh
+!wp-create.sh
+!wp-destroy.sh
