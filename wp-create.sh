@@ -299,12 +299,12 @@ echo "::1 ${LOCAL_DOMAIN}"
 echo -e "${NC}"
 
 WINDOWS_HOSTS="C:\\Windows\\System32\\drivers\\\etc\hosts"
-echo -e "On Windows, the hosts file is located at ${BLUE}${WINDOWS_HOSTS}${NC}"
-echo -e "You will need to edit it with an editor that has elevated privileges."
+echo -e "If you ran this installer in WSL, you need to update the Windows hosts file."
+echo -e "It is located at ${BLUE}${WINDOWS_HOSTS}${NC}"
 echo -e "Open PowerShell as an Administrator and run the following command:\n"
 echo -e "${GREEN}notepad ${WINDOWS_HOSTS}${NC}\n"
 
-echo -e "On Ubuntu, the hosts file is located at ${BLUE}/etc/hosts${NC}"
+echo -e "If it was ran in native Ubuntu, the hosts file is located at ${BLUE}/etc/hosts${NC}"
 echo -e "You can edit it with the following command:\n"
 echo -e "${GREEN}sudo nano /etc/hosts${NC}\n"
 
