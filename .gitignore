@@ -1,5 +1,7 @@
-*/
-.env
-*.sh
+*
+!.env-sample
+!.gitignore
+!LICENSE
+!README.md
 !wp-create.sh
 !wp-destroy.sh
