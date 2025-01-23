@@ -4,7 +4,7 @@ This repository contains shell scripts designed to automate the creation and rem
 
 ## Prerequisites
 
-**Ubuntu (or WSL2 running Ubuntu)** with:
+**Ubuntu (or Ubuntu running on WSL2)** with:
 - PHP 8.2+ with the curl, dom, gd, json, mbstring, mysqli, openssl, xml, zip modules enabled
 - Apache with mod_rewrite enabled
 - MariaDB 10.6+ with root access
@@ -35,10 +35,12 @@ It then performs the following functions:
 - If `SMTP_USER` and `SMTP_PASS` are set, it installs and activates the [Simple SMTP Mailer](https://wordpress.org/plugins/simple-smtp-mailer) plugin.
 
 ### `wp-destroy.sh`
-Removes a WordPress site created from running the `wp-build.sh` script.
-> This script removes everything and should be used with extreme caution.
-It prompts for a required `SLUG` and then asks for confirmation.  
-Separately, it prompts for confirmation of database deletion and Apache config deletion.
+**This script removes everything and should be used with extreme caution.**
+
+Removes a WordPress site created by running the `wp-build.sh` script:
+- Prompts for the site's `SLUG` and then asks for confirmation of deletion
+- Asks if you want to delete the site's database
+- Asks if you want to delete the Apache config file
 
 ## Usage
 
