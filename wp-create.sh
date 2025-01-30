@@ -2,8 +2,7 @@
 
 # BUILD SCRIPT FOR LOCAL WORDPRESS DEVELOPMENT
 # Author: Josh Mckibbin
-# Version: 1.0.0
-# Date: 2025-01-22
+# Version: 1.0.1
 #
 # This script creates a new WordPress site in the ${DEV_DIR} directory:
 # 	- Creates the necessary directory structure (e.g., ${DEV_DIR}/${SLUG}/wordpress)
@@ -194,6 +193,21 @@ wp core install --title="${TITLE}" \
 	--admin_password=${ADMIN_PASS} \
 	--admin_email=${ADMIN_EMAIL} \
 	--skip-email
+
+# Create the .htaccess file
+cat <<HTACCESS > .htaccess
+# BEGIN WordPress
+
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+
+# END WordPress
+HTACCESS
 
 # Check if a db dump exists
 DEV_DB="${DB_DUMP_DIR}/${SLUG}-dev.sql"
