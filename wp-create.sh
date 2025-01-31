@@ -209,6 +209,14 @@ RewriteRule . /index.php [L]
 # END WordPress
 HTACCESS
 
+# Set loose permissions
+echo -e "Updating the permissions..."
+sudo chown -R "${USER}":www-data ${INSTALL_DIR}
+sudo find ${INSTALL_DIR} -type d -exec chmod 755 {} \;
+sudo find ${INSTALL_DIR} -type f -exec chmod 644 {} \;
+sudo find ${INSTALL_DIR}/wp-content -type d -exec chmod 775 {} \;
+sudo find ${INSTALL_DIR}/wp-content -type f -exec chmod 664 {} \;
+
 # Check if a db dump exists
 DEV_DB="${DB_DUMP_DIR}/${SLUG}-dev.sql"
 OG_DB="${DB_DUMP_DIR}/${SLUG}.sql"
