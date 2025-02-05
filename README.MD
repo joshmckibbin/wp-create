@@ -37,7 +37,7 @@ It then performs the following functions:
 ### `wp-destroy.sh`
 **This script removes everything and should be used with extreme caution.**
 
-Removes a WordPress site created by running the `wp-build.sh` script:
+Removes a WordPress site created by running the `wp-create.sh` script:
 - Prompts for the site's `SLUG` and then asks for confirmation of deletion
 - Asks if you want to delete the site's database
 - Asks if you want to delete the Apache config file
@@ -71,7 +71,7 @@ cp .env-sample .env
 5. Run one of the shell scripts
 
 ```sh
-./wp-build.sh
+./wp-create.sh
 ```
 
 6. Profit?
