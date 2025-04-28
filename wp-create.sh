@@ -2,39 +2,28 @@
 
 # BUILD SCRIPT FOR LOCAL WORDPRESS DEVELOPMENT
 # Author: Josh Mckibbin
-# Version: 1.0.1
+# Version: 1.0.3
 #
-# This script creates a new WordPress site in the ${DEV_DIR} directory:
+# This script creates a new WordPress site using the variables defined in the .env file:
 # 	- Creates the necessary directory structure (e.g., ${DEV_DIR}/${SLUG}/wordpress)
 #	- Downloads the latest version of WordPress
+# 	- Creates the database schema and user with necessary permissions
 # 	- Creates the wp-config.php file
-# 	- Creates the database as '${SLUG}'
 # 	- Installs WordPress
+# 	- Creates the .htaccess file
 # 	- Checks for an existing database dump (${SLUG}-dev.sql, ${SLUG}.sql, ${SLUG}-prod.sql) in ${DB_DUMP_DIR} and imports it if found
-#	- Installs and activates the Simple SMTP Mailer plugin
+#	- Installs and activates the Simple SMTP Mailer plugin (if SMTP_USER and SMTP_PASS are set)
 #
-# Requirements:
+# Minimum Requirements:
 #	- Local linux development environment (WSL2 running Ubuntu in this case):
 #		- Apache with mod_rewrite enabled
-#		- PHP 8.2+ with the following modules: curl, dom, gd, json, mbstring, mysqli, openssl, xml, zip
 #		- MariaDB 10.6+ with root access
-#		- wp-cli: The script will attempt to install it if it's not found
-#	- .env file in the same directory as this script with the necessary variables:
-#		- DEV_DIR (e.g., /path/to/your/dev/directory)
-#		- AVAILABLE_SITES_DIR (e.g., /path/to/your/apache/sites-available)
-#		- ADMIN
-#		- ADMIN_EMAIL
-#		- ADMIN_PASS
-#		- DB_ROOT_PASS
-#		- DB_USER
-#		- DB_PASS
-#		- DB_DUMP_DIR The directory where the database dump files are stored
-#		- SMTP_USER (optional) For the Simple SMTP Mailer plugin
-#		- SMTP_PASS (optional) For the Simple SMTP Mailer plugin
+#		- PHP 8.2+ with the curl, imagick, json, mbstring, mysql, xml and zip extensions installed
+#	- The provided .env file placed in the same directory as this script with the ADMIN_EMAIL variable replaced with a valid email address
 #
 # DO NOT RUN THIS SCRIPT IN A PRODUCTION ENVIRONMENT !!!
 
-source .env
+source $(dirname "$BASH_SOURCE")/.env
 
 # Prompt for the site title if $1 is not provided
 if [ -z "$1" ]; then
@@ -58,12 +47,10 @@ slugify() {
 }
 
 # Prompt for the site slug
-TITLE_SLUG=$(slugify "${TITLE}")
-read -p "Enter the site slug (Default: ${TITLE_SLUG}}): " SLUG
-if [ -n ${SLUG} ]; then
-	SLUG=$(slugify "${SLUG}")
-else
-	SLUG=${TITLE_SLUG}
+SLUG=$(slugify "${TITLE}")
+read -p "Enter the site slug (Default: ${SLUG}}): " USER_SLUG
+if [[ -v ${USER_SLUG} ]]; then
+	SLUG=$(slugify "${USER_SLUG}")
 fi
 
 # Set the output colors
@@ -88,6 +75,16 @@ if ! command -v wp &> /dev/null; then
 fi
 
 INSTALL_DIR="${DEV_DIR}/${SLUG}/wordpress"
+
+# Attempt to create the config directory if it doesn't exist and if it fails, exit
+if [ ! -d ${CONFIG_DIR} ]; then
+	mkdir -p ${CONFIG_DIR}
+	if [ $? -ne 0 ]; then
+		echo "The configuration directory could not be created. Exiting..."
+		exit 1
+	fi
+	echo -e "${GREEN}Success:${NC} Configuration directory created at ${CONFIG_DIR}"
+fi
 
 # Attempt to create the installation directory if it doesn't exist and if it fails, exit
 if [ ! -d ${INSTALL_DIR} ]; then
@@ -114,6 +111,20 @@ wp core download --skip-content
 
 # Generate DB_NAME
 DB_NAME=$(echo ${SLUG} | sed 's/-/_/g')
+
+# Create the database and grant permissions to the user
+echo -e "Creating database: ${DB_NAME}..."
+#wp db create --dbuser=root --dbpass=${DB_ROOT_PASS}
+if mariadb -u root -p${DB_ROOT_PASS} -e \
+	"CREATE DATABASE IF NOT EXISTS ${DB_NAME}; \
+	CREATE USER IF NOT EXISTS ${DB_USER}@localhost; \
+	GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO ${DB_USER}@localhost IDENTIFIED BY '${DB_PASS}';" \
+	&> "${CONFIG_DIR}/mariadb.log"; then
+	echo -e "${GREEN}Success:${NC} Database created and user permissions granted"
+else
+	echo -e "Database creation and user permissions failed. Exiting..."
+	exit 1
+fi
 
 # Create the wp-config.php file
 DB_PREFIX="wp_${DB_NAME}_"
@@ -173,23 +184,10 @@ ${SSMTP_MAILER}
 PHP
 fi
 
-# Create the database and grant permissions to the user
-#wp db create --dbuser=root --dbpass=${DB_ROOT_PASS}
-if mariadb -uroot -p${DB_ROOT_PASS} -e \
-	"CREATE DATABASE IF NOT EXISTS ${DB_NAME}; \
-	CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost'; \
-	GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';" \
-	&> /dev/null; then
-	echo -e "${GREEN}Success:${NC} Database created and user permissions granted"
-else
-	echo -e "Database creation and user permissions failed. Exiting..."
-	exit 1
-fi
-
 # Install WordPress
 wp core install --title="${TITLE}" \
 	--url="${LOCAL_DOMAIN}" \
-	--admin_user="${ADMIN}" \
+	--admin_user="${ADMIN_USER}" \
 	--admin_password=${ADMIN_PASS} \
 	--admin_email=${ADMIN_EMAIL} \
 	--skip-email
@@ -333,5 +331,5 @@ echo -e "${GREEN}sudo nano /etc/hosts${NC}\n"
 echo -e "If you ran this script in WSL, you will need to edit the hosts file in Windows."
 
 # Display the Login URL and credentials
-echo -e "WordPress Login: ${BLUE}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN}, p: ${ADMIN_PASS})\n"
+echo -e "WordPress Login: ${BLUE}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN_USER}, p: ${ADMIN_PASS})\n"
 exit 0

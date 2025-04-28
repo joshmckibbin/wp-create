@@ -3,7 +3,7 @@
 # REMOVE SCRIPT FOR LOCAL WORDPRESS DEVELOPMENT
 # Assumes the site was created with wp-build.sh
 
-source .env
+source $(dirname "$BASH_SOURCE")/.env
 
 # Prompt for the site slug if $1 is not provided
 if [ -z "$1" ]; then

@@ -16,11 +16,12 @@ With root access, run the following:
 apt update && apt install -y apache2 && systemctl enable apache2 && \
 a2enmod rewrite && systemctl restart apache2 && \
 apt install -y mariadb-server && mariadb-secure-installation && \
-apt install -y php php-curl php-imagick php-json php-mbstring php-mysql php-xml php-zip
+apt install -y php php-curl php-imagick php-json php-mbstring php-mysql php-xml php-zip && \
+systemctl restart apache2
 ```
-Set a root password for MariaDB when prompted. It should be the same value as `DB_ROOT_PASS` in the `.env` file.
+Set a root password for MariaDB when asked if you want to change the root password. It should be the same value as `DB_ROOT_PASS` in the `.env` file.
 
-Note: If http://localhost will not resolve after installation, you may need to disable Fast Startup in your Windows settings and reboot your computer.
+Note: If http://localhost will not resolve after installation in WSL2, you may need to disable Fast Startup in your Windows settings and reboot your computer.
 
 ## Scripts
 
@@ -87,6 +88,17 @@ cp .env-sample .env
 ```
 
 6. Profit?
+
+Note: If your development directory (`DEV_DIR`) is within your home folder (which is the default), you will need to add executable permissions to your home folder:
+```sh
+chmod o+x $HOME
+```
+
+### Optional: Add the script as a bash alias
+1. Open your bash config
+`nano ~/.bashrc`
+2. Add this to the bottom:
+`alias wp-create='$HOME/dev/wp-create/wp-create.sh'`
 
 ## License
 
