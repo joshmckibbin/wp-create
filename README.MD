@@ -90,15 +90,29 @@ cp .env-sample .env
 6. Profit?
 
 Note: If your development directory (`DEV_DIR`) is within your home folder (which is the default), you will need to add executable permissions to your home folder:
+
 ```sh
 chmod o+x $HOME
 ```
 
 ### Optional: Add the script as a bash alias
-1. Open your bash config
-`nano ~/.bashrc`
+1. Open your bash config:
+
+```sh
+nano ~/.bashrc
+```
+
 2. Add this to the bottom:
-`alias wp-create='$HOME/dev/wp-create/wp-create.sh'`
+
+```sh
+alias wp-create='$HOME/dev/wp-create/wp-create.sh'
+```
+
+3. Call the script from anywhere within Ubuntu:
+
+```sh
+wp-create "My Great WordPress Site"
+```
 
 ## License
 
