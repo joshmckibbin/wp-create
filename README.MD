@@ -5,10 +5,22 @@ This repository contains shell scripts designed to automate the creation and rem
 ## Prerequisites
 
 **Ubuntu (or Ubuntu running on WSL2)** with:
-- PHP 8.2+ with the curl, dom, gd, json, mbstring, mysqli, openssl, xml, zip modules enabled
 - Apache with mod_rewrite enabled
 - MariaDB 10.6+ with root access
+- PHP 8.2+ with the curl, imagick, json, mbstring, mysql, xml and zip extensions installed.
 - wp-cli (The `wp-create.sh` script will attempt to install it if it isn't installed)
+
+### Installing the prerequisites
+With root access, run the following:
+```sh
+apt update && apt install -y apache2 && systemctl enable apache2 && \
+a2enmod rewrite && systemctl restart apache2 && \
+apt install -y mariadb-server && mariadb-secure-installation && \
+apt install -y php php-curl php-imagick php-json php-mbstring php-mysql php-xml php-zip
+```
+Set a root password for MariaDB when prompted. It should be the same value as `DB_ROOT_PASS` in the `.env` file.
+
+Note: If http://localhost will not resolve after installation, you may need to disable Fast Startup in your Windows settings and reboot your computer.
 
 ## Scripts
 
