@@ -328,8 +328,6 @@ echo -e "If it was ran in native Ubuntu, the hosts file is located at ${BLUE}/et
 echo -e "You can edit it with the following command:\n"
 echo -e "${GREEN}sudo nano /etc/hosts${NC}\n"
 
-echo -e "If you ran this script in WSL, you will need to edit the hosts file in Windows."
-
 # Display the Login URL and credentials
 echo -e "WordPress Login: ${BLUE}http://${LOCAL_DOMAIN}/wp-admin${NC} (u: ${ADMIN_USER}, p: ${ADMIN_PASS})\n"
 exit 0
