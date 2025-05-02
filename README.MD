@@ -96,19 +96,12 @@ chmod o+x $HOME
 ```
 
 ### Optional: Add the script as a bash alias
-1. Open your bash config:
 
 ```sh
-nano ~/.bashrc
+echo "alias wp-create='$HOME/dev/wp-create/wp-create.sh'" >> ~/.bash_aliases
 ```
 
-2. Add this to the bottom:
-
-```sh
-alias wp-create='$HOME/dev/wp-create/wp-create.sh'
-```
-
-3. Call the script from anywhere within Ubuntu:
+Now you can call the script from anywhere within Ubuntu:
 
 ```sh
 wp-create "My Great WordPress Site"
