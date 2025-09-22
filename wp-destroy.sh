@@ -25,7 +25,7 @@ SLUG=$(echo "${SLUG}" | \
 	tr A-Z a-z)
 
 # Set the installation directory, local domain and database name
-INSTALL_DIR="${DEV_DIR}/${SLUG}"
+INSTALL_DIR="${DEV_DIR}/${SLUG}/wordpress"
 LOCAL_DOMAIN="${SLUG}.local"
 DB_NAME=$(echo "${SLUG}" | sed 's/-/_/g')
 
