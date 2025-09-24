@@ -2,7 +2,7 @@
 
 # BUILD SCRIPT FOR LOCAL WORDPRESS DEVELOPMENT
 # Author: Josh Mckibbin
-# Version: 1.0.3
+# Version: 1.0.4
 #
 # This script creates a new WordPress site using the variables defined in the .env file:
 # 	- Creates the necessary directory structure (e.g., ${DEV_DIR}/${SLUG}/wordpress)
@@ -48,7 +48,7 @@ slugify() {
 
 # Prompt for the site slug
 SLUG=$(slugify "${TITLE}")
-read -p "Enter the site slug (Default: ${SLUG}}): " USER_SLUG
+read -p "Enter the site slug (Default: ${SLUG}): " USER_SLUG
 if [[ -v ${USER_SLUG} ]]; then
 	SLUG=$(slugify "${USER_SLUG}")
 fi
